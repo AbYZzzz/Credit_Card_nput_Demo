@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Credit Card Input Demo</string>
+
+    <string name="card_number">Card Number</string>
+
+    <string name="expiry">MM/YY</string>
+    <string name="expiry_date">Expiration Date</string>
+    <string name="null_date"> </string>
+
+    <string name="security_code">Security Code</string>
+    <string name="cvv">CVV</string>
+    <string name="cid">CID</string>
+
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+
+    <string name="submit">Submit Payment</string>
+</resources>
