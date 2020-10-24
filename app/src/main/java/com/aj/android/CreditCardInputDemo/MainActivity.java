@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -28,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextInputLayout securityCodeLayout;
     private TextInputLayout firstNameLayout;
     private TextInputLayout lastNameLayout;
-
     private Button submit;
     private String firstName, lastName, expiryDate, codeType;
     private char[] cardNumber, securityCode;
@@ -39,19 +39,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        cardNumberLayout=findViewById(R.id.cardNumberLayout);
+        cardNumberLayout = findViewById(R.id.cardNumberLayout);
         inputCardNum = findViewById(R.id.cardNumber);
 
         expiryDateLayout = findViewById(R.id.expiryDateLayout);
         inputExpiryDate = findViewById(R.id.expiryDate);
 
-        securityCodeLayout=findViewById(R.id.securityCodeLayout);
+        securityCodeLayout = findViewById(R.id.securityCodeLayout);
         inputCode = findViewById(R.id.securityCode);
 
-        firstNameLayout=findViewById(R.id.firstNameLayout);
+        firstNameLayout = findViewById(R.id.firstNameLayout);
         inputFirstName = findViewById(R.id.firstName);
 
-        lastNameLayout=findViewById(R.id.lastNameLayout);
+        lastNameLayout = findViewById(R.id.lastNameLayout);
         inputLastName = findViewById(R.id.lastName);
 
         submit = findViewById(R.id.submitPay);
@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void changeSecurityCodeType() {
-        inputCode.setFilters(new InputFilter[]{new InputFilter.LengthFilter(codeLength)});
         codeType = getString(codeLength == 3 ? R.string.cvv : R.string.cid);
+        inputCode.setFilters(new InputFilter[]{new InputFilter.LengthFilter(codeLength)});
     }
 
     private void cardNumberReader() {
@@ -95,16 +95,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputCardNum.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-
                 inputCardNum.setHint(hasFocus ? R.string.card_hint : R.string.null_val);
-                if (cardNumber != null)
-                    if (cardNumber.length == 15) {
+                if (cardNumber != null) {
+                    cardNumCount = getCount(cardNumber);
+                    if (cardNumCount == 15) {
                         codeLength = 4;
                         changeSecurityCodeType();
-                    } else if (cardNumber.length == 16) {
+                    } else if (cardNumCount == 16) {
                         codeLength = 3;
                         changeSecurityCodeType();
                     }
+                }
+                Log.d(TAG, "onFocusChange: " + cardNumCount);
             }
         });
         inputCardNum.addTextChangedListener(new TextWatcher() {
@@ -119,11 +121,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void afterTextChanged(Editable s) {
                 cardNumber = getCardNum(s, DIGIT_COUNT);
-                if (isCorrectStr(s, TOTAL_SIZE, DIVIDER_MOD, DIVIDER_CHAR) != -1) {
+                if (!isCorrectStr(s, TOTAL_SIZE, DIVIDER_MOD, DIVIDER_CHAR)) {
                     s.replace(0, s.length(), getCorrectString(cardNumber, DIVIDER_CHAR, DIVIDER_POS));
                 }
             }
         });
+    }
+
+    private int getCount(char[] num) {
+        int count=0;
+        for (char c : num) {
+            if (Character.isDigit(c))
+                count++;
+        }
+        return count;
     }
 
     private void expiryDateReader() {
@@ -137,13 +148,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 expiryDateLayout.setHint(getString(hasFocus ? R.string.expiry_date : R.string.expiry));
                 if (!hasFocus && expiryDate != null) {
                     String[] date = expiryDate.split("/");
-                    if (date.length==2) {
+                    if (date.length == 2) {
                         int m = Integer.parseInt(date[0]), y = Integer.parseInt(date[1]);
                         int currentMonth = Calendar.getInstance().get(Calendar.MONTH), currentYear = Calendar.getInstance().get(Calendar.YEAR);
                         if (m > 12 || m < 0) {
-                            expiryDateLayout.setError("Invalid Date");
+                            inputExpiryDate.setError("Invalid Date");
                         } else if ((m < currentMonth + 1 && y == currentYear % 100) || y < currentYear % 100) {
-                            expiryDateLayout.setError("Card Expired!");
+                            inputExpiryDate.setError("Card Expired!");
                         } else
                             isExpDateValid = true;
                     }
@@ -162,25 +173,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void afterTextChanged(Editable s) {
                 expiryDate = s.toString();
-                if ((cardNumCount = isCorrectStr(s, DIGIT_COUNT, DIVIDER_MOD, DIVIDER_CHAR)) != -1) {
+                if (!isCorrectStr(s, DIGIT_COUNT, DIVIDER_MOD, DIVIDER_CHAR)) {
                     s.replace(0, s.length(), getCorrectString(getCardNum(s, DIGIT_COUNT), DIVIDER_CHAR, DIVIDER_POS));
                 }
             }
         });
     }
 
-    public int isCorrectStr(Editable s, int totalSymbols, int dividerPos, char dividerChar) {
+    public boolean isCorrectStr(Editable s, int totalSymbols, int dividerPos, char dividerChar) {
         boolean isCorrect = s.length() <= totalSymbols;
-        int count = 0;
         for (int i = 0; i < s.length(); i++) {
             if (i > 0 && (i + 1) % dividerPos == 0)
                 isCorrect &= dividerChar == s.charAt(i);
             else {
-                count++;
                 isCorrect &= Character.isDigit(s.charAt(i));
             }
         }
-        return isCorrect ? -1 : count;
+        return isCorrect;
     }
 
     public String getCorrectString(char[] digits, char dividerChar, int dividerPos) {
@@ -220,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void afterTextChanged(Editable s) {
                 if (!(isNameValid = isValid(s.toString())))
-                    firstNameLayout.setError("First Name can only contains alphabets and spaces");
+                    inputFirstName.setError("First Name can only contains alphabets and spaces");
                 firstName = s.toString();
             }
         });
@@ -231,18 +240,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputLastName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
-
             @Override
             public void afterTextChanged(Editable s) {
                 if (!(isNameValid = isValid(s.toString())))
-                    lastNameLayout.setError("First Name can only contains alphabets and spaces");
+                    inputLastName.setError("First Name can only contains alphabets and spaces");
                 lastName = s.toString();
             }
         });
@@ -260,27 +265,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (cardNumber==null)
+        if (cardNumber == null)
             cardNumberLayout.setError("can't be Empty");
         else if (!luhnTest(cardNumber))
             cardNumberLayout.setError("Invalid Credit Card Number");
         else
-            isCardValid=true;
+            isCardValid = true;
 
-        if (expiryDate==null)
+        if (expiryDate == null)
             expiryDateLayout.setError("can't be Empty");
 
-        if (firstName==null)
+        if (firstName == null)
             firstNameLayout.setError("can't be Empty");
-        if (lastName==null)
+        if (lastName == null)
             lastNameLayout.setError("can't be Empty");
 
-        if (securityCode==null)
+        if (securityCode == null)
             securityCodeLayout.setError("can't be Empty");
         else if (!isCodeValid)
             securityCodeLayout.setError("Please Enter " + codeLength + " digits code");
 
-        if (isCardValid&&isCodeValid&&isNameValid&&isExpDateValid)
+        if (isCardValid && isCodeValid && isNameValid && isExpDateValid)
             Toast.makeText(this, "Payment Successful!", Toast.LENGTH_SHORT).show();
     }
 
