@@ -9,5 +9,4 @@
 <img width = 300 hieght= 640 src="https://github.com/AbYZzzz/Credit_Card_nput_Demo/blob/master/screenshots/Screenshot3.jpg"/>
 <h3>first name and last name can only contain alphabets and spaces</h3>
 <img width = 300 hieght= 640 src="https://github.com/AbYZzzz/Credit_Card_nput_Demo/blob/master/screenshots/Screenshot4.jpg"/>
-<h3>credit card number is verifiedby luhn algorithm</h3>
-<img width = 640 hieght= 320 src="https://github.com/AbYZzzz/Credit_Card_nput_Demo/blob/master/screenshots/screenshot5.png"/>
+<h3>credit card number is verified by luhn algorithm</h3>
