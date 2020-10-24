@@ -265,19 +265,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (cardNumber == null)
+        if (cardNumber == null||cardNumCount==0)
             cardNumberLayout.setError("can't be Empty");
         else if (!luhnTest(cardNumber))
             cardNumberLayout.setError("Invalid Credit Card Number");
         else
             isCardValid = true;
 
-        if (expiryDate == null)
+        if (expiryDate == null||expiryDate.length()==0)
             expiryDateLayout.setError("can't be Empty");
 
-        if (firstName == null)
+        if (firstName == null||firstName.length()==0)
             firstNameLayout.setError("can't be Empty");
-        if (lastName == null)
+        if (lastName == null||lastName.length()==0)
             lastNameLayout.setError("can't be Empty");
 
         if (securityCode == null)
