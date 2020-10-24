@@ -309,6 +309,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long sum = 0, d, m = 1;
         for (int i = cardNumCount; i >= 0; i--) {
             d = m * Integer.parseInt(String.valueOf(num[i]));
+            if (d>9){
+            d-=9;
+            }
             sum = sum + d;
             m = m == 2 ? 1 : 2;
         }
